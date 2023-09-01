@@ -15,7 +15,6 @@ class Anime {
 	//인수로 전달된 key값에 따라 value, currentValue값을 가공해서 run메서드에 전달하는 메서드
 	setValue(key, value) {
 		let currentValue = null;
-		let currentValue2 = null;
 		this.isString = typeof value === 'string';
 
 		//일반적인 속성명일때 currentValue값 처리
@@ -31,8 +30,8 @@ class Anime {
 			const x = ['left', 'right', 'width'];
 			const y = ['top', 'bottom', 'height'];
 			if (key.includes('margin') || key.includes('padding')) return console.error('margin, padding값은 퍼센트 모션처리할 수 없습니다.');
-			for (let cond of x) key === cond && (currentValue2 = (currentValue2 / parentW) * 100);
-			for (let cond of y) key === cond && (currentValue2 = (currentValue2 / parentH) * 100);
+			for (let cond of x) key === cond && (currentValue = (currentValue / parentW) * 100);
+			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
 			value = parseFloat(value);
 			//속성값을 퍼센트로 동작해야 되는 progress값을 분리해야 되기 때문에 runPercent함수 호출
 			value !== currentValue && requestAnimationFrame((time) => this.runPercent(time, key, currentValue, value));
