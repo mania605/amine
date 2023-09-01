@@ -35,12 +35,13 @@ class Anime {
 
 			value = parseFloat(value);
 		}
+		//위의 조건에 따라서  만들어진 값을 run메서드에 전달
 		console.log('curVal', currentValue, 'tarVal', value);
-		value !== currentValue && requestAnimationFrame((time) => this.run(time));
+		value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value));
 	}
 
-	run(time) {
-		console.log(time);
+	run(time, key, currentValue, value) {
+		console.log('time:', time, 'key:', key, 'currentValue:', currentValue, 'value:', value);
 	}
 }
 
