@@ -6,6 +6,7 @@ class Anime {
 		this.duration = duration;
 		this.callback = callback;
 		this.startTime = performance.now();
+		this.isString = null;
 		//props객체어서 key, value값을 배열로 뽑고 인스턴스 객체로 넘긴다음
 		//인스턴스 생성시 내부적으로 해당 배열의 값들을 setValue메서드를 반복호출하면서 인수로 전달
 		this.keys.forEach((key, idx) => this.setValue(key, this.values[idx]));
@@ -13,9 +14,8 @@ class Anime {
 
 	//인수로 전달된 key값에 따라 value, currentValue값을 가공해서 run메서드에 전달하는 메서드
 	setValue(key, value) {
-		console.log('test');
 		let currentValue = null;
-		const isString = typeof value;
+		this.isString = typeof value;
 
 		//일반적인 속성명일때 currentValue값 처리
 		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
@@ -24,7 +24,7 @@ class Anime {
 		key === 'scroll' ? (currentValue = this.selector.scrollY) : (currentValue = parseFloat(getComputedStyle(this.selector)[key]));
 
 		//퍼센트일떄 currentValue값 처리
-		if (isString === 'string') {
+		if (this.isString === 'string') {
 			const parentW = parseInt(getComputedStyle(this.selector.parentElement).width);
 			const parentH = parseInt(getComputedStyle(this.selector.parentElement).height);
 			const x = ['left', 'right', 'width'];
@@ -32,23 +32,29 @@ class Anime {
 			if (key.includes('margin') || key.includes('padding')) return console.error('margin, padding값은 퍼센트 모션처리할 수 없습니다.');
 			for (let cond of x) key === cond && (currentValue = (currentValue / parentW) * 100);
 			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
-
 			value = parseFloat(value);
 		}
-		//위의 조건에 따라서  만들어진 값을 run메서드에 전달
-		console.log('curVal', currentValue, 'tarVal', value);
+		//변경하려고 하는 value값과 현재 currentValue값이 같지 않을때 위의 조건에 따라서  만들어진 값을 run메서드에 전달
 		value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value));
 	}
 
 	run(time, key, currentValue, value) {
-		console.log('time:', time, 'key:', key, 'currentValue:', currentValue, 'value:', value);
+		let timelast = time - this.startTime;
+		let progress = timelast / this.duration;
+
+		progress < 0 && (progress = 0);
+		progress > 1 && (progress = 1);
+
+		progress < 1 ? requestAnimationFrame((time) => this.run(time, key, currentValue, value)) : this.callback && this.callback();
+
+		let result = currentValue + (value - currentValue) * progress;
+		if (this.isString === 'string') this.selector.style[key] = result + '%';
+		else if (key === 'opacity') this.selector.style[key] = result;
+		else if (key === 'scroll') this.selector.scroll(0, result);
+		else this.selector.style[key] = result + 'px';
 	}
 }
 
-/*
-		this.option.value !== this.currentValue &&
-			requestAnimationFrame((time) => this.run(time));
-		*/
 /*
 	run(time) {
 		let timelast = time - this.startTime;
