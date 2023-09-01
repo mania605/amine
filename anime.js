@@ -15,7 +15,8 @@ class Anime {
 	//인수로 전달된 key값에 따라 value, currentValue값을 가공해서 run메서드에 전달하는 메서드
 	setValue(key, value) {
 		let currentValue = null;
-		this.isString = typeof value;
+		let currentValue2 = null;
+		this.isString = typeof value === 'string';
 
 		//일반적인 속성명일때 currentValue값 처리
 		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
@@ -24,57 +25,51 @@ class Anime {
 		key === 'scroll' ? (currentValue = this.selector.scrollY) : (currentValue = parseFloat(getComputedStyle(this.selector)[key]));
 
 		//퍼센트일떄 currentValue값 처리
-		if (this.isString === 'string') {
+		if (this.isString) {
 			const parentW = parseInt(getComputedStyle(this.selector.parentElement).width);
 			const parentH = parseInt(getComputedStyle(this.selector.parentElement).height);
 			const x = ['left', 'right', 'width'];
 			const y = ['top', 'bottom', 'height'];
 			if (key.includes('margin') || key.includes('padding')) return console.error('margin, padding값은 퍼센트 모션처리할 수 없습니다.');
-			for (let cond of x) key === cond && (currentValue = (currentValue / parentW) * 100);
-			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
+			for (let cond of x) key === cond && (currentValue2 = (currentValue2 / parentW) * 100);
+			for (let cond of y) key === cond && (currentValue2 = (currentValue2 / parentH) * 100);
 			value = parseFloat(value);
+			//속성값을 퍼센트로 동작해야 되는 progress값을 분리해야 되기 때문에 runPercent함수 호출
+			value !== currentValue && requestAnimationFrame((time) => this.runPercent(time, key, currentValue, value));
+		} else {
+			//속성값을 퍼센트로 연산할 필요가 없을때 나머지 모든 속성들은 동일한 progress로직으로 동작가능하기 때문에 runBasic호출
+			value !== currentValue && requestAnimationFrame((time) => this.runBasic(time, key, currentValue, value));
 		}
-		//변경하려고 하는 value값과 현재 currentValue값이 같지 않을때 위의 조건에 따라서  만들어진 값을 run메서드에 전달
-		value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value));
 	}
 
-	run(time, key, currentValue, value) {
+	//공통으로 실행할 진행률 반환하는 메서드
+	getProgress(time) {
 		let timelast = time - this.startTime;
 		let progress = timelast / this.duration;
-
 		progress < 0 && (progress = 0);
 		progress > 1 && (progress = 1);
+		return progress;
+	}
 
-		progress < 1 ? requestAnimationFrame((time) => this.run(time, key, currentValue, value)) : this.callback && this.callback();
+	runBasic(time, key, currentValue, value) {
+		//진행률 반환후
+		let progress = this.getProgress(time);
+		progress < 1 ? requestAnimationFrame((time) => this.runBasic(time, key, currentValue, value)) : this.callback && this.callback();
 
+		//반환된 결과값으로 opcacity, scroll외에 모든 px요청값 적용
 		let result = currentValue + (value - currentValue) * progress;
-		if (this.isString === 'string') this.selector.style[key] = result + '%';
-		else if (key === 'opacity') this.selector.style[key] = result;
+		if (key === 'opacity') this.selector.style[key] = result;
 		else if (key === 'scroll') this.selector.scroll(0, result);
 		else this.selector.style[key] = result + 'px';
 	}
-}
 
-/*
-	run(time) {
-		let timelast = time - this.startTime;
-		let progress = timelast / this.option.duration;
+	runPercent(time, key, currentValue, value) {
+		//진행률 반환후
+		let progress = this.getProgress(time);
+		progress < 1 ? requestAnimationFrame((time) => this.runPercent(time, key, currentValue, value)) : this.callback && this.callback();
 
-		progress < 0 && (progress = 0);
-		progress > 1 && (progress = 1);
-
-		progress < 1
-			? requestAnimationFrame((time) => this.run(time))
-			: this.option.callback && this.option.callback();
-
-		let result =
-			this.currentValue + (this.option.value - this.currentValue) * progress;
-
-		if (this.isString === 'string')
-			this.selector.style[this.option.prop] = result + '%';
-		else if (this.option.prop === 'opacity')
-			this.selector.style[this.option.prop] = result;
-		else if (this.option.prop === 'scroll') this.selector.scroll(0, result);
-		else this.selector.style[this.option.prop] = result + 'px';
+		//반환된 결과값으로 오직 percent요청값 적용
+		let result = currentValue + (value - currentValue) * progress;
+		this.selector.style[key] = result + '%';
 	}
-	*/
+}
