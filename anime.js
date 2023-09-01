@@ -11,21 +11,24 @@ class Anime {
 		this.keys.forEach((key, idx) => this.setValue(key, this.values[idx]));
 	}
 
+	//인수로 전달된 key값에 따라 value, currentValue값을 가공해서 run메서드에 전달하는 메서드
 	setValue(key, value) {
-		console.log(key);
 		let currentValue = null;
-		//현제 css에 적용되어 있는 값을 가져와서 실수로 변환
-		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
 		const isString = typeof value;
+
+		//일반적인 속성명일때 currentValue값 처리
+		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
+
+		//속성명이 scroll일때 currentValue값 처리
+		key === 'scroll' ? (currentValue = this.selector.scrollY) : (currentValue = parseFloat(getComputedStyle(this.selector)[key]));
+
+		//퍼센트일떄 currentValue값 처리
 		if (isString === 'string') {
 			const parentW = parseInt(getComputedStyle(this.selector.parentElement).width);
 			const parentH = parseInt(getComputedStyle(this.selector.parentElement).height);
-
 			const x = ['left', 'right', 'width'];
 			const y = ['top', 'bottom', 'height'];
-			const errProps = ['margin-left', 'margin-right', 'padding-left', 'padding-right', 'margin-top', 'margin-bottom', 'padding-top', 'padding-bottom'];
-
-			for (let cond of errProps) if (key === cond) return console.error('margin, padding값은 퍼센트 모션처리할 수 없습니다.');
+			if (key.includes('margin') || key.includes('padding')) return console.error('margin, padding값은 퍼센트 모션처리할 수 없습니다.');
 			for (let cond of x) key === cond && (currentValue = (currentValue / parentW) * 100);
 			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
 
@@ -35,50 +38,6 @@ class Anime {
 	}
 
 	/*
-		this.option.prop === 'scroll'
-			? (this.currentValue = this.selector.scrollY)
-			: (this.currentValue = parseFloat(
-					getComputedStyle(this.selector)[this.option.prop]
-			  ));
-
-		this.isString = typeof this.option.value;
-		if (this.isString === 'string') {
-			const parentW = parseInt(
-				getComputedStyle(this.selector.parentElement).width
-			);
-			const parentH = parseInt(
-				getComputedStyle(this.selector.parentElement).height
-			);
-
-			const x = ['left', 'right', 'width'];
-			const y = ['top', 'bottom', 'height'];
-			const errProps = [
-				'margin-left',
-				'margin-right',
-				'padding-left',
-				'padding-right',
-				'margin-top',
-				'margin-bottom',
-				'padding-top',
-				'padding-bottom',
-			];
-
-			for (let cond of errProps)
-				if (this.option.prop === cond)
-					return console.error(
-						'margin, padding값은 퍼센트 모션처리할 수 없습니다.'
-					);
-
-			for (let cond of x)
-				this.option.prop === cond &&
-					(this.currentValue = (this.currentValue / parentW) * 100);
-			for (let cond of y)
-				this.option.prop === cond &&
-					(this.currentValue = (this.currentValue / parentH) * 100);
-
-			this.option.value = parseFloat(this.option.value);
-		}
-
 		this.option.value !== this.currentValue &&
 			requestAnimationFrame((time) => this.run(time));
 		*/
