@@ -14,6 +14,8 @@ class Anime {
 	setValue(key, value) {
 		console.log(key);
 		let currentValue = null;
+		//현제 css에 적용되어 있는 값을 가져와서 실수로 변환
+		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
 		const isString = typeof value;
 		if (isString === 'string') {
 			const parentW = parseInt(getComputedStyle(this.selector.parentElement).width);
