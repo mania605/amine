@@ -13,6 +13,7 @@ class Anime {
 
 	//인수로 전달된 key값에 따라 value, currentValue값을 가공해서 run메서드에 전달하는 메서드
 	setValue(key, value) {
+		console.log('test');
 		let currentValue = null;
 		const isString = typeof value;
 
@@ -33,15 +34,21 @@ class Anime {
 			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
 
 			value = parseFloat(value);
-			console.log('curVal', currentValue, 'tarVal', value);
 		}
+		console.log('curVal', currentValue, 'tarVal', value);
+		value !== currentValue && requestAnimationFrame((time) => this.run(time));
 	}
 
-	/*
+	run(time) {
+		console.log(time);
+	}
+}
+
+/*
 		this.option.value !== this.currentValue &&
 			requestAnimationFrame((time) => this.run(time));
 		*/
-	/*
+/*
 	run(time) {
 		let timelast = time - this.startTime;
 		let progress = timelast / this.option.duration;
@@ -64,4 +71,3 @@ class Anime {
 		else this.selector.style[this.option.prop] = result + 'px';
 	}
 	*/
-}
