@@ -25,7 +25,7 @@ class Anime {
 			for (let cond of x) key === cond && (currentValue = (currentValue / parentW) * 100);
 			for (let cond of y) key === cond && (currentValue = (currentValue / parentH) * 100);
 			const percentValue = parseFloat(value);
-			percentValue !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value, true));
+			percentValue !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, percentValue, true));
 		} else {
 			value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value, false));
 		}
