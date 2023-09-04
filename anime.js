@@ -47,6 +47,11 @@ class Anime {
 			percentValue !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, percentValue, type));
 		}
 		if (type === 'color') {
+			//rgb(233,13,23) => [233,13, 23]
+			currentValue = this.colorToArray(currentValue);
+			//#fe23543 => [233,10, 100];
+			value = this.hexToRgb(value);
+			this.isBg = true;
 			value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value, type));
 		}
 		if (type === 'basic') {
@@ -79,25 +84,45 @@ class Anime {
 		let timelast = time - this.startTime;
 		let progress = timelast / this.duration;
 
+		progress < 0 && (progress = 0);
+		progress > 1 && (progress = 1);
+
 		Object.keys(easingPresets).map((key) => {
-			//easingPresets[key] : linear, ease1, ease2에 등록되어 있는 각각의 배열
-			//옵션으로 전달한 easeType과 내부적으로 반복도는  key값이 동일할때 해당 조건의 배열값을 BezierEasing에 전달
-			//매칭되는 배열값을 다시 순번에 맞게 뽑아서 BeizeEading에 각각 전달한후 반환되는 함수에 바로 progress를 인수로 전달해 호출
 			if (this.easeType === key) this.easingProgress = BezierEasing(easingPresets[key][0], easingPresets[key][1], easingPresets[key][2], easingPresets[key][3])(progress);
 		});
 
-		progress < 0 && (progress = 0);
-		progress > 1 && (progress = 1);
-		let result = currentValue + (value - currentValue) * this.easingProgress;
-		return [progress, result];
+		//bg일때만 배열값으로 리턴
+		if (this.isBg) {
+			const result = currentValue.map((curVal, idx) => curVal + (values[idx] - curVal) * this.easingProgress);
+			return [progress, result];
+			//그렇지 않을때는 그냥 일반값 리턴
+		} else {
+			const result = currentValue + (value - currentValue) * this.easingProgress;
+			return [progress, result];
+		}
 	}
 
 	//전달된 result값으로 실제적으로 돔의 변화 세팅
 	setValue(key, result, type) {
 		if (type === 'percent') this.selector.style[key] = result + '%';
-		else if (type === 'color') this.selector.style[key] = result + '%';
+		else if (type === 'color') this.selector.style[key] = `rgb(${result[0]},${result[1]},${result[2]})`;
 		else if (key === 'opacity') this.selector.style[key] = result;
 		else if (key === 'scroll') this.selector.scroll(0, result);
 		else this.selector.style[key] = result + 'px';
+	}
+
+	colorToArray(strColor) {
+		return strColor.match(/\d+/g).map(Number);
+	}
+	hexToRgb(hexColor) {
+		//#ff00ff -> #f0f
+		//#fa34fe;
+		const hex = hexColor.replace('#', '');
+		//hex값은 2개의 하나로 묶여서 각각 r,g,b에 대응되기 때문에 문자코드가 3개가 아니면 중복되는 값이 없으므로 2개씩 값을 묶어서 배열로 반환
+		const rgb = hex.length === 3 ? hex.match(/a-f\d/gi) : hex.match(/[a-f\d]{2}/gi);
+		rgb.map((el) => {
+			if (el.length === 1) el = el + el;
+			return parseInt(el, 16);
+		});
 	}
 }
