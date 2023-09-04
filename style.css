@@ -15,7 +15,7 @@ body {
 #box {
 	width: 100px;
 	height: 100px;
-	background: gray;
+	background-color: gray;
 	position: absolute;
 	top: 20px;
 	left: 100px;

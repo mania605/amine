@@ -13,25 +13,17 @@ class Anime {
 		this.isPercent = null;
 		this.isBg = null;
 		this.easingProgress = null;
-		//인스턴스 복사시 props의 갯수만큼 반복을 돌면서 속성종류에 따라 value값을 보정해주는 getValue에 반복전달
 		this.keys.forEach((key, idx) => {
-			//반복도는 value값이 문자열이면 다시 조건처리
 			typeof this.values[idx] === 'string'
 				? this.values[idx].includes('%')
-					? //문자열인데 %기호가 있으면 퍼센트처리
-					  this.getValue(key, this.values[idx], 'percent')
-					: //문자열인데 %기호가 없으면 색상처리
-					  this.getValue(key, this.values[idx], 'color')
-				: //문자값이 아니면 그냥 일반 연산처리
-				  this.getValue(key, this.values[idx], 'basic');
+					? this.getValue(key, this.values[idx], 'percent')
+					: this.getValue(key, this.values[idx], 'color')
+				: this.getValue(key, this.values[idx], 'basic');
 		});
 	}
 
-	//반복돌면서 전달되는 key, value값을 활용에 속성에 맞게 값을 가공해서 run메서드에 보내줌
-	//세번째 인수로 추가전달되는 type값에 따라 각각 percent, bg, basic분기 연산처리
 	getValue(key, value, type) {
 		let currentValue = null;
-		this.isString = typeof value === 'string';
 		currentValue = parseFloat(getComputedStyle(this.selector)[key]);
 		key === 'scroll' ? (currentValue = this.selector.scrollY) : (currentValue = parseFloat(getComputedStyle(this.selector)[key]));
 
@@ -47,10 +39,10 @@ class Anime {
 			percentValue !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, percentValue, type));
 		}
 		if (type === 'color') {
-			//rgb(233,13,23) => [233,13, 23]
+			currentValue = getComputedStyle(this.selector)[key];
 			currentValue = this.colorToArray(currentValue);
-			//#fe23543 => [233,10, 100];
 			value = this.hexToRgb(value);
+
 			this.isBg = true;
 			value !== currentValue && requestAnimationFrame((time) => this.run(time, key, currentValue, value, type));
 		}
@@ -59,21 +51,15 @@ class Anime {
 		}
 	}
 
-	//getValue로 전달된 값을 requestAnimationFrame으로부터 전달받아서 내부의 getProgress메서드에 전달
 	run(time, key, currentValue, value, type) {
 		let [progress, result] = this.getProgress(time, currentValue, value);
-		//run메서드의 type을 다시 setValue로 전달
+
 		this.setValue(key, result, type);
 		progress < 1
-			? //진행률이 1에 도달하지 않으면 반복처리
-			  //percent, color, basic조건을 반복돌면서
-			  //run메서드를 통해서  전달되는 type값이 현재 반복도는 타입과 동일하면 해당 타입을 다시 run메서드의 마지막 인수로 전달해서 재귀적 호출
-			  ['percent', 'color', 'basic'].map((el) => type === el && requestAnimationFrame((time) => this.run(time, key, currentValue, value, type)))
-			: //1에 도달하면 반복중지하고 콜백함수 처리
-			  this.callback && this.callback();
+			? ['percent', 'color', 'basic'].map((el) => type === el && requestAnimationFrame((time) => this.run(time, key, currentValue, value, type)))
+			: this.callback && this.callback();
 	}
 
-	//run메서드 안쪽에서 전달된 currentValue,value값을 가지고 속성별로 진행률과 진행률이 적용된 result값을 반환
 	getProgress(time, currentValue, value) {
 		const easingPresets = {
 			linear: [0, 0, 1, 1],
@@ -84,28 +70,27 @@ class Anime {
 		let timelast = time - this.startTime;
 		let progress = timelast / this.duration;
 
-		progress < 0 && (progress = 0);
-		progress > 1 && (progress = 1);
+		currentValue.length ? (this.isBg = true) : (this.isBg = false);
 
 		Object.keys(easingPresets).map((key) => {
 			if (this.easeType === key) this.easingProgress = BezierEasing(easingPresets[key][0], easingPresets[key][1], easingPresets[key][2], easingPresets[key][3])(progress);
 		});
 
-		//bg일때만 배열값으로 리턴
+		progress < 0 && (progress = 0);
+		progress > 1 && (progress = 1);
+
 		if (this.isBg) {
-			const result = currentValue.map((curVal, idx) => curVal + (values[idx] - curVal) * this.easingProgress);
+			const result = currentValue.map((curVal, idx) => curVal + (value[idx] - curVal) * this.easingProgress);
 			return [progress, result];
-			//그렇지 않을때는 그냥 일반값 리턴
 		} else {
 			const result = currentValue + (value - currentValue) * this.easingProgress;
 			return [progress, result];
 		}
 	}
 
-	//전달된 result값으로 실제적으로 돔의 변화 세팅
 	setValue(key, result, type) {
 		if (type === 'percent') this.selector.style[key] = result + '%';
-		else if (type === 'color') this.selector.style[key] = `rgb(${result[0]},${result[1]},${result[2]})`;
+		else if (this.isBg) this.selector.style[key] = `rgb(${result[0]},${result[1]},${result[2]})`;
 		else if (key === 'opacity') this.selector.style[key] = result;
 		else if (key === 'scroll') this.selector.scroll(0, result);
 		else this.selector.style[key] = result + 'px';
@@ -115,12 +100,10 @@ class Anime {
 		return strColor.match(/\d+/g).map(Number);
 	}
 	hexToRgb(hexColor) {
-		//#ff00ff -> #f0f
-		//#fa34fe;
 		const hex = hexColor.replace('#', '');
-		//hex값은 2개의 하나로 묶여서 각각 r,g,b에 대응되기 때문에 문자코드가 3개가 아니면 중복되는 값이 없으므로 2개씩 값을 묶어서 배열로 반환
 		const rgb = hex.length === 3 ? hex.match(/a-f\d/gi) : hex.match(/[a-f\d]{2}/gi);
-		rgb.map((el) => {
+
+		return rgb.map((el) => {
 			if (el.length === 1) el = el + el;
 			return parseInt(el, 16);
 		});
