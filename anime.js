@@ -1,10 +1,12 @@
 class Anime {
-	constructor(selector, props, duration, callback) {
+	#defOpt = { duration: 500, callback: null };
+	constructor(selector, props, opt) {
 		this.selector = selector;
+		this.defOpt = { ...this.#defOpt, ...opt };
 		this.keys = Object.keys(props);
 		this.values = Object.values(props);
-		this.duration = duration;
-		this.callback = callback;
+		this.duration = this.defOpt.duration;
+		this.callback = this.defOpt.callback;
 		this.startTime = performance.now();
 		this.isString = null;
 		//인스턴스 복사시 props의 갯수만큼 반복을 돌면서 속성종류에 따라 value값을 보정해주는 getValue에 반복전달

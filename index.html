@@ -20,9 +20,7 @@
     const box = document.querySelector('#box');
 
     btn.addEventListener('click', () => {
-      const instance = new Anime(box, { top: 200, left: '50%', opacity: 0.4 }, 1000, () => {
-        console.log('complete')
-      });
+      new Anime(box, { top: 200, left: '50%', opacity: 0.4 });
 
     });
   </script>
