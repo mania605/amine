@@ -3,22 +3,25 @@
   padding: 0;
   box-sizing: border-box;
 }
-h1 {
-  font: bold 50px/1 "arial";
-  color: #000;
-}
-section {
-  width: 1400px;
-  height: 800px;
-  border: 1px solid black;
-  position: relative;
+ 
+ 
+ 
+
+body {
+  height: 500vh;
+  background-image: linear-gradient(
+    to bottom,
+    red,
+    hotpink,
+    lightgreen,
+    green,
+    aqua,
+    blue
+  );
 }
 
-article {
-  width: 200px;
-  height: 200px;
-  background-color: aqua;
-  position: absolute;
-  top: 0px;
-  left: 0px;
+
+nav {
+  position: fixed;
+
 }
