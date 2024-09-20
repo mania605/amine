@@ -3,9 +3,6 @@
   padding: 0;
   box-sizing: border-box;
 }
- 
- 
- 
 
 body {
   height: 500vh;
@@ -19,9 +16,12 @@ body {
     blue
   );
 }
-
-
 nav {
   position: fixed;
-
+  top: 0;
+  left: 0;
+}
+nav button {
+  padding: 5px 10px;
+  cursor: pointer;
 }

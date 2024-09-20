@@ -161,4 +161,3 @@ class Anime {
 		});
 	}
 }
-index.html
