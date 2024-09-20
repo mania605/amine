@@ -1,5 +1,5 @@
 const btns = document.querySelectorAll("button");
-const posArr = [0, 2000, 4000]; // 스크롤할 위치 배열
+const posArr = [0, 1000, 2000, 3000, 4000]; // 스크롤할 위치 배열
 
 btns.forEach((btn, index) => {
   btn.addEventListener('click', () => {
